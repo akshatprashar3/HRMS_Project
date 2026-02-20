@@ -1,0 +1,8 @@
+# Backend
+hrms-backend/venv/
+hrms-backend/__pycache__/
+hrms-backend/hrms.db
+
+# Frontend
+hrms-frontend/node_modules/
+hrms-frontend/dist/
