@@ -54,11 +54,25 @@ from database import AttendanceDB
 
 @app.post("/api/attendance/", status_code=201)
 def mark_attendance(att: AttendanceCreate, db: Session = Depends(get_db)):
-    db_att = AttendanceDB(**att.dict())
-    db.add(db_att)
-    db.commit()
-    db.refresh(db_att)
-    return db_att
+    # Check if a record already exists for this employee on this exact date
+    existing_record = db.query(AttendanceDB).filter(
+        AttendanceDB.employee_id == att.employee_id,
+        AttendanceDB.date == att.date
+    ).first()
+    
+    if existing_record:
+        # If it exists, OVERWRITE the status instead of throwing an error
+        existing_record.status = att.status
+        db.commit()
+        db.refresh(existing_record)
+        return existing_record
+    else:
+        # If it does not exist, CREATE a new record
+        db_att = AttendanceDB(**att.dict())
+        db.add(db_att)
+        db.commit()
+        db.refresh(db_att)
+        return db_att
 
 @app.get("/api/attendance/{emp_id}")
 def get_attendance(emp_id: int, db: Session = Depends(get_db)):
